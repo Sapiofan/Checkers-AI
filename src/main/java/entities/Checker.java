@@ -56,4 +56,9 @@ public class Checker {
     public String getCheckerCell() {
         return Character.toString((char) (x + 96)) + y;
     }
+
+    public void setCheckerCell(String cell) {
+        this.x = Integer.parseInt(Character.toString((char) (cell.charAt(0) - 49)));
+        this.y = Integer.parseInt(cell.substring(1));
+    }
 }

@@ -8,8 +8,8 @@ import java.util.List;
 public class Board {
     private String currentPlayer;
 
-    private final List<Checker> whiteCheckers = new ArrayList<>();
-    private final List<Checker> blackCheckers = new ArrayList<>();
+    private List<Checker> whiteCheckers = new ArrayList<>();
+    private List<Checker> blackCheckers = new ArrayList<>();
     private final List<String> whiteCells = new ArrayList<>();
 
     public Board() {
@@ -63,6 +63,14 @@ public class Board {
 
     public List<Checker> getBlackCheckers() {
         return blackCheckers;
+    }
+
+    public void setWhiteCheckers(List<Checker> whiteCheckers) {
+        this.whiteCheckers = whiteCheckers;
+    }
+
+    public void setBlackCheckers(List<Checker> blackCheckers) {
+        this.blackCheckers = blackCheckers;
     }
 
     public List<String> getWhiteCells() {
