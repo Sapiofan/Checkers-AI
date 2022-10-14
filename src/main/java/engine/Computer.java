@@ -4,6 +4,7 @@ import entities.Board;
 import entities.Checker;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static engine.Game.checkIfPlayerMustBeat;
 import static engine.Utils.convertNumbersToCell;
@@ -11,77 +12,101 @@ import static engine.Utils.getNumbersFromCell;
 
 public class Computer {
 
-    private Map<Checker, String> strategy = new LinkedHashMap<>();
+    private List<Map<String, Checker>> strategy = new ArrayList<>();
 
     public void makeMove(int mode, Board board) {
         Map<Checker, List<String>> checkersMustBeBeaten = checkIfComputerMustBeat(board);
-        beatCheckers(checkersMustBeBeaten);
+        if (beatCheckers(checkersMustBeBeaten) != null) {
+            return;
+        }
 
-        Board tempBoard = new Board();
-        tempBoard.setWhiteCheckers(board.getWhiteCheckers());
-        tempBoard.setBlackCheckers(board.getBlackCheckers());
+        Board tempBoard;
+        tempBoard = getTempBoard(board);
+        tempBoard.setCurrentPlayer("b");
 
-//        Map<Checker, List<String>> possibleMoves = getCheckersThatCanMove(tempBoard.getBlackCheckers(), tempBoard);
+        Map<Checker, List<String>> possibleMoves = getCheckersThatCanMove(tempBoard.getBlackCheckers(), tempBoard);
 
         // 1. beat the most rival checkers and lose minimum computer checkers
         // 2. remove possibility of getting King by rival
         // 3. get Kings
         List<List<Map<String, Checker>>> allPaths = new ArrayList<>();
-        for (int i = 0; i < mode; i++) {
-            tempBoard.setWhiteCheckers(board.getWhiteCheckers()); // update initial state
-            tempBoard.setBlackCheckers(board.getBlackCheckers());
-            for (List<Map<String, Checker>> allPath : allPaths) {
+        for (Map.Entry<Checker, List<String>> checkerListEntry : possibleMoves.entrySet()) {
+            for (String s : checkerListEntry.getValue()) {
+                List<Map<String, Checker>> path = new ArrayList<>();
+                Map<String, Checker> map = new HashMap<>();
+                map.put(s, checkerListEntry.getKey());
+                path.add(map);
+                allPaths.add(path);
+            }
+        }
+
+        for (int i = 1; i < mode; i++) {
+            int stopFlag = allPaths.get(allPaths.size() - 1).size();
+            for (int j = 0; j < allPaths.size(); j++) {
+                tempBoard = getTempBoard(board); // update initial state
+                if (i % 2 == 0) {
+                    tempBoard.setCurrentPlayer("b");
+                } else {
+                    tempBoard.setCurrentPlayer("w");
+                }
+                List<Map<String, Checker>> allPath = allPaths.get(j);
                 Board board1 = getBoardState(tempBoard, allPath); // get board state for a certain path
                 List<Checker> allCheckers; // get checkers of board state
                 Map<String, Checker> move = new HashMap<>();
-                if (board.getCurrentPlayer().equals("b")) {
+                if (tempBoard.getCurrentPlayer().equals("b")) {
                     allCheckers = board1.getBlackCheckers();
                     Map<Checker, List<String>> botMustBeat = checkIfComputerMustBeat(board1);
                     Checker checker = beatCheckers(botMustBeat);
-                    move.put(checker.getCheckerCell(), checker);
-                    allPath.add(move);
+                    if (checker != null) {
+                        move.put(checker.getCheckerCell(), checker);
+                        allPath.add(move);
+                        continue;
+                    }
                 } else {
                     allCheckers = board1.getWhiteCheckers();
                     Map<Checker, List<String>> playerMustBeat = checkIfPlayerMustBeat(board1);
                     Checker checker = beatCheckers(playerMustBeat);
-                    move.put(checker.getCheckerCell(), checker);
-                    allPath.add(move);
-                }
-                Map<Checker, List<String>> possibleMoves = getCheckersThatCanMove(allCheckers, board1); // get moves of checkers
-                for (Map.Entry<Checker, List<String>> checkerListEntry : possibleMoves.entrySet()) {
-                    if (board1.getCurrentPlayer().equals("w")) { // make move (add checker and where it should be moved)
-
-                    } else {
-
+                    if (checker != null) {
+                        move.put(checker.getCheckerCell(), checker);
+                        allPath.add(move);
+                        continue;
                     }
                 }
-            }
-            if (i == 0) {
-                continue;
+                possibleMoves = getCheckersThatCanMove(allCheckers, board1); // get moves of checkers
+                for (Map.Entry<Checker, List<String>> checkerListEntry : possibleMoves.entrySet()) {
+                    for (String s : checkerListEntry.getValue()) {
+                        Map<String, Checker> map = new HashMap<>();
+                        map.put(s, checkerListEntry.getKey());
+                        List<Map<String, Checker>> path = new ArrayList<>(allPath);
+                        path.add(map);
+                        allPaths.add(path);
+                    }
+                }
+                if (stopFlag < allPath.size()) {
+                    break;
+                }
+                System.out.println("Board1");
+                System.out.print(board1);
             }
             int lastSize = allPaths.get(allPaths.size() - 1).size();
-            for (List<Map<String, Checker>> allPath : allPaths) {
-                if (allPath.size() < lastSize) {
-                    allPath.remove(allPath);
+            allPaths.removeIf(allPath -> allPath.size() < lastSize);
+        }
+
+        for (List<Map<String, Checker>> allPath : allPaths) {
+            for (Map<String, Checker> stringCheckerMap : allPath) {
+                for (Map.Entry<String, Checker> stringCheckerEntry : stringCheckerMap.entrySet()) {
+                    System.out.print(stringCheckerEntry.getKey() + "\t");
                 }
             }
+            System.out.println();
         }
-//        Map<Checker, Map<Checker, String>> possibleStrategies = new HashMap<>();
-//        for (Map.Entry<Checker, List<String>> checkerListEntry : possibleMoves.entrySet()) {
-//            tempBoard.setWhiteCheckers(board.getWhiteCheckers());
-//            tempBoard.setBlackCheckers(board.getBlackCheckers());
-//            possibleStrategies.put(checkerListEntry.getKey(),
-//                    calculateBestWayForChecker(checkerListEntry.getKey(), checkerListEntry.getValue(), mode, tempBoard, board));
-//        }
 
-//        possibleStrategies = sortStrategiesByEffectiveness(possibleStrategies);
-//        strategy = possibleStrategies.entrySet().stream().findFirst().map(Map.Entry::getValue).orElse(strategy);
-
+        strategy = bestStrategy(allPaths, board, tempBoard);
         // choose the best strategy for computer (minimum loses for preventing it)
-        Map<Checker, String> strategyForPreventingRivalKing = checkIfUserCanGetKing();
+//        Map<Checker, String> strategyForPreventingRivalKing = checkIfUserCanGetKing();
 
         // choose the best strategy for computer (minimum loses, maximum beats for getting king)
-        Map<Checker, String> strategyForGettingKing = checkIfBotCanGetKing();
+//        Map<Checker, String> strategyForGettingKing = checkIfBotCanGetKing();
 
 
         // compare all 3 strategies and decide which is the best, assign it to global strategy and make first move
@@ -214,111 +239,117 @@ public class Computer {
         if (board.getCurrentPlayer().equals("b")) {
             if (x - 1 >= 0 && placement.get(1) - 1 >= 0
                     && board.getCellCheckerByNumbers(x, y) == null) {
-                possibleMoves.add(convertNumbersToCell(x + 1, y + 1));
+                possibleMoves.add(convertNumbersToCell(x + 1 - 1, y + 1 - 1));
             }
             if (x + 1 < 8 && placement.get(1) - 1 >= 0
                     && board.getCellCheckerByNumbers(x + 2, y) == null) {
-                possibleMoves.add(convertNumbersToCell(x + 1, y + 1));
+                possibleMoves.add(convertNumbersToCell(x + 1 + 1, y + 1 - 1));
             }
         } else {
             if (x - 1 > 0 && y + 1 < 8
                     && board.getCellCheckerByNumbers(x, y + 2) == null) {
-                possibleMoves.add(convertNumbersToCell(x + 1, y + 1));
+                possibleMoves.add(convertNumbersToCell(x + 1 - 1, y + 1 + 1));
             }
             if (x + 1 < 8 && y + 1 < 8
                     && board.getCellCheckerByNumbers(x + 2, y + 2) == null) {
-                possibleMoves.add(convertNumbersToCell(x + 1, y + 1));
+                possibleMoves.add(convertNumbersToCell(x + 1 + 1, y + 1 + 1));
             }
         }
 
         return possibleMoves;
     }
 
-//    private Map<Checker, String> calculateBestWayForChecker(Checker checker, List<String> possibleMoves,
-//                                                            int mode, Board board, Board init) {
-//
-//        Map<Checker, String> strategy1 = null;
-//        Map<Checker, String> strategy2 = null;
-//
-//        for (int i = 0; i < possibleMoves.size(); i++) {
-//            String possibleMove = possibleMoves.get(i);
-//            if (i == 0) {
-//                strategy1 = move(checker, possibleMove, mode, board, init);
-//            } else {
-//                board.setWhiteCheckers(init.getWhiteCheckers());
-//                board.setBlackCheckers(init.getBlackCheckers());
-//                strategy2 = move(checker, possibleMove, mode, board, init);
-//            }
-//        }
-//
-//        if (strategy2 == null) {
-//            return strategy1;
-//        }
-//
-//        return bestStrategyForOneChecker(strategy1, strategy2, board, init);
-//    }
-
-    // see the best outcome for first move of a certain checker
-//    private Map<Checker, String> move(Checker checker, String move, int mode, Board board, Board init) {
-//        if (mode == 0) {
-//            return new LinkedHashMap<>();
-//        }
-//
-////        Map<Checker, String> strategy = new LinkedHashMap<>();
-//
-//        List<Map<Checker, String>> bestWays = new ArrayList<>();
-//        Map<Checker, List<String>> whites = getCheckersThatCanMove(board.getWhiteCheckers(), board);
-//        Map<Checker, List<String>> blacks = getCheckersThatCanMove(board.getBlackCheckers(), board);
-//        if(checker.getColor().equals("b")) {
-//            for (Map.Entry<Checker, List<String>> checkerListEntry : whites.entrySet()) {
-//                bestWays.add(calculateBestWayForChecker(checkerListEntry.getKey(),
-//                        checkerListEntry.getValue(), mode - 1, board, init));
-//            }
-//        } else {
-//            for (Map.Entry<Checker, List<String>> checkerListEntry : blacks.entrySet()) {
-//                bestWays.add(calculateBestWayForChecker(checkerListEntry.getKey(),
-//                        checkerListEntry.getValue(), mode - 1, board, init));
-//            }
-//        }
-//
-//        List<String> beatComputer = checkIfPlayerMustBeat(board);
-//
-//
-//
-//        Map<Checker, List<String>> checkersMustBeBeaten = checkIfComputerMustBeat(board);
-//        beatCheckers(checkersMustBeBeaten);
-//
-//
-//        return strategy;
-//    }
-
-    // module strategy and see what is more effective
-    private Map<Checker, String> bestStrategyForOneChecker(Map<Checker, String> strategy1,
-                                                           Map<Checker, String> strategy2, Board board, Board init) {
-
-        for (Map.Entry<Checker, String> checkerStringEntry : strategy1.entrySet()) {
-
+    // 1. the biggest number of rival beaten checkers (beaten checker = +2)
+    // 2. not allow to get King (getting King = +4)
+    // 3. the smallest number of computer beaten checkers and not more than rival (beaten checker = -2)
+    // 4. getting of King (getting king = +3)
+    private List<Map<String, Checker>> bestStrategy(List<List<Map<String, Checker>>> allPaths, Board board, Board tempBoard) {
+        tempBoard = getTempBoard(board);
+        Map<List<Map<String, Checker>>, Integer> gradeStrategies = new HashMap<>();
+        Set<Checker> potentialKings = getPotentialKings(allPaths, board, tempBoard);
+        for (List<Map<String, Checker>> allPath : allPaths) {
+            Board state = getBoardState(board, allPath);
+            int potentialKingsExist = 0;
+            for (Checker whiteChecker : state.getWhiteCheckers()) {
+                for (Checker potentialKing : potentialKings) {
+                    if (whiteChecker.equals(potentialKing)) {
+                        potentialKingsExist++;
+                    }
+                }
+            }
+            gradeStrategies.put(allPath,
+                    ((board.getWhiteCheckers().size() - state.getWhiteCheckers().size()) * 2) -
+                            ((board.getBlackCheckers().size() - state.getBlackCheckers().size()) * 2) +
+                            (getNumberOfComputerKings(allPath, board) * 3) +
+                            (potentialKings.size() - potentialKingsExist) * 4);
         }
 
-        return strategy1;
+        return sortByValue(gradeStrategies).entrySet()
+                .stream()
+                .findFirst()
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
     }
 
+    private int getNumberOfComputerKings(List<Map<String, Checker>> allPath, Board board) {
+        Board tempBoard = getTempBoard(board);
+        Board state = getBoardState(tempBoard, allPath);
 
-    // the most effective strategies are first
-    private Map<Checker, Map<Checker, String>> sortStrategiesByEffectiveness(Map<Checker, Map<Checker, String>> possibleStr) {
-        Map<Checker, Map<Checker, String>> sortedMap = new LinkedHashMap<>();
-
-
-        return sortedMap;
+        return (int) state.getBlackCheckers().stream().filter(Checker::isKing).count();
     }
 
-    private Map<Checker, String> checkIfBotCanGetKing() {
+    private Set<Checker> getPotentialKings(List<List<Map<String, Checker>>> allPaths, Board board, Board tempBoard) {
+        Set<Checker> checkers = new HashSet<>();
+        for (List<Map<String, Checker>> allPath : allPaths) {
+            List<Checker> kings = checkIfRivalKingExistInPath(allPath, board);
+            checkers.addAll(kings);
+        }
 
-        return null;
+        return checkers;
     }
 
-    private Map<Checker, String> checkIfUserCanGetKing() {
+    private List<Checker> checkIfRivalKingExistInPath(List<Map<String, Checker>> allPath, Board init) {
+        int counter = allPath.size() - 1;
+        List<Checker> checkers = new ArrayList<>();
+        if (counter > 0) {
+            for (int i = 0; i < allPath.size(); i++) {
+                Board tempBoard = getTempBoard(init);
+                Board board = getBoardState(tempBoard, allPath.subList(0, allPath.size() - counter));
+                board.getWhiteCheckers().stream().filter(Checker::isKing).forEach(checkers::add);
+                counter++;
+            }
+        }
 
-        return null;
+        return checkers;
+    }
+
+    private Board getTempBoard(Board board) {
+        Board tempBoard = new Board();
+        List<Checker> tempBlack = board.getBlackCheckers()
+                .stream()
+                .map(blackChecker -> new Checker(blackChecker.getX(), blackChecker.getY(), "b"))
+                .collect(Collectors.toList());
+        List<Checker> tempWhite = board.getWhiteCheckers()
+                .stream()
+                .map(whiteChecker -> new Checker(whiteChecker.getX(), whiteChecker.getY(), "w"))
+                .collect(Collectors.toList());
+        tempBoard.setWhiteCheckers(tempWhite);
+        tempBoard.setBlackCheckers(tempBlack);
+
+        return tempBoard;
+    }
+
+    private HashMap<List<Map<String, Checker>>, Integer> sortByValue(Map<List<Map<String, Checker>>, Integer> hm) {
+        List<Map.Entry<List<Map<String, Checker>>, Integer>> list = new LinkedList<>(hm.entrySet());
+
+        list.sort(Map.Entry.comparingByValue());
+
+        HashMap<List<Map<String, Checker>>, Integer> temp = new LinkedHashMap<>();
+        for (Map.Entry<List<Map<String, Checker>>, Integer> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+
+        return temp;
     }
 }
