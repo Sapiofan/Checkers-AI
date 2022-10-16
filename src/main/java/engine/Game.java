@@ -18,6 +18,9 @@ public class Game {
         int mode = scanner.nextInt() * 2;
         String checker, move;
 
+        // fix moving
+        // add King logic
+        // check if winner exist
         while (winnerNotExist(board)) {
             System.out.println(board);
             System.out.println("Choose checker: ");
@@ -29,6 +32,8 @@ public class Game {
             System.out.print("Your move: ");
             move = checkMoveInput(scanner.next(), false);
             makePlayerMove(board, checker, move);
+            System.out.println(board);
+            System.out.println("Computer turn...");
             board.setCurrentPlayer("b");
             computer.makeMove(mode, board);
             board.setCurrentPlayer("w");
