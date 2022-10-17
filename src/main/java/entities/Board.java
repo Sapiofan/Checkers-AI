@@ -111,18 +111,10 @@ public class Board {
     public String toString() {
         String[][] boardState = new String[8][8];
         for (Checker blackChecker : blackCheckers) {
-            if (blackChecker.getY() % 2 == 0) {
-                if (!blackChecker.isKing()) {
-                    boardState[8 - blackChecker.getY()][8 - blackChecker.getX() + 1] = "\u26C0";
-                } else {
-                    boardState[8 - blackChecker.getY()][8 - blackChecker.getX() + 1] = "\u26C1";
-                }
+            if (!blackChecker.isKing()) {
+                boardState[8 - blackChecker.getY()][blackChecker.getX() - 1] = "\u26C0";
             } else {
-                if (!blackChecker.isKing()) {
-                    boardState[8 - blackChecker.getY()][8 - blackChecker.getX() - 1] = "\u26C0";
-                } else {
-                    boardState[8 - blackChecker.getY()][8 - blackChecker.getX() - 1] = "\u26C1";
-                }
+                boardState[8 - blackChecker.getY()][blackChecker.getX() - 1] = "\u26C1";
             }
         }
 

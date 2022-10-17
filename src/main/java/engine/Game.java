@@ -16,12 +16,12 @@ public class Game {
                 "3 >> hard\n" +
                 "4 >> insane\n");
         int mode = scanner.nextInt() * 2;
-        String checker, move;
+        String checker, move, result;
 
-        // fix moving
-        // add King logic
-        // check if winner exist
-        while (winnerNotExist(board)) {
+        // fix beating
+        // add tests
+        // cleaning, optimization
+        while (true) {
             System.out.println(board);
             System.out.println("Choose checker: ");
             checker = checkMoveInput(scanner.next(), false);
@@ -35,17 +35,22 @@ public class Game {
             System.out.println(board);
             System.out.println("Computer turn...");
             board.setCurrentPlayer("b");
+            result = computer.checkIfWinnerExists(board);
+            if (!result.equals("")) {
+                System.out.println(result);
+                return;
+            }
+            long start = System.currentTimeMillis();
             computer.makeMove(mode, board);
+            float elapsedTimeSec = (System.currentTimeMillis() - start) / 1000F;
+            System.out.println("Seconds: " + elapsedTimeSec);
             board.setCurrentPlayer("w");
+            result = computer.checkIfWinnerExists(board);
+            if (!result.equals("")) {
+                System.out.println(result);
+                return;
+            }
         }
-    }
-
-    public boolean winnerNotExist(Board board) {
-        if (board.getWhiteCheckers().size() == 0 || board.getBlackCheckers().size() == 0) {
-            return false;
-        }
-
-        return true;
     }
 
     public String checkMoveInput(String move, boolean exitMode) {
@@ -82,15 +87,15 @@ public class Game {
     public boolean checkIfCheckerCanMove(Board board, String checker, String move) {
         Map<Checker, List<String>> checkersThatMustBeBeaten = checkIfPlayerMustBeat(board);
         boolean flag = false;
-        if (checkersThatMustBeBeaten.size() != 0) { // what do when here
+        if (checkersThatMustBeBeaten.size() != 0) {
             for (Map.Entry<Checker, List<String>> checkerListEntry : checkersThatMustBeBeaten.entrySet()) {
                 for (String s : checkerListEntry.getValue()) {
-                    if(s.contains(move)) {
+                    if (s.contains(move)) {
                         flag = true;
                         break;
                     }
                 }
-                if(flag) {
+                if (flag) {
                     break;
                 }
             }
@@ -109,12 +114,14 @@ public class Game {
                         board.getBlackCheckers().remove(board.getCellChecker(checker));
                         checker1.setX(checker1.getX() - 2);
                         checker1.setY(checker1.getY() + 2);
+
                         return true;
                     } else if (currentCheckerLetter + 1 == beatenCheckerLetter && currentCheckerNumber + 1 == beatenCheckerNumber) {
                         Checker checker1 = board.getCellChecker(checker);
                         board.getBlackCheckers().remove(board.getCellChecker(checker));
                         checker1.setX(checker1.getX() + 2);
                         checker1.setY(checker1.getY() + 2);
+
                         return true;
                     }
                 }
@@ -158,11 +165,51 @@ public class Game {
                         Checker checker2 = board.getCellChecker(secondCellRight);
                         if (checker2 == null) {
                             List<String> list = possibleMoves.get(whiteChecker);
-                            if(possibleMoves.get(whiteChecker) == null) {
+                            if (possibleMoves.get(whiteChecker) == null) {
                                 list = new ArrayList<>();
                             }
                             list.add(secondCellRight);
                             possibleMoves.put(whiteChecker, list);
+                        }
+                    }
+                }
+            }
+
+            if (whiteChecker.isKing()) {
+                String firstCellLeftDown = Utils.convertNumbersToCell(whiteChecker.getX() - 1, whiteChecker.getY() - 1);
+                String firstCellRightDown = Utils.convertNumbersToCell(whiteChecker.getX() + 1, whiteChecker.getY() - 1);
+                String secondCellLeftDown;
+                String secondCellRightDown;
+
+                if (firstCellLeftDown != null) {
+                    Checker checker = board.getCellChecker(firstCellLeftDown);
+                    if (checker != null && checker.getColor().equals("b")) {
+                        secondCellLeftDown = Utils.convertNumbersToCell(whiteChecker.getX() - 2, whiteChecker.getY() - 2);
+                        if (secondCellLeftDown != null) {
+                            Checker checker2 = board.getCellChecker(secondCellLeftDown);
+                            if (checker2 == null) {
+                                List<String> list = new ArrayList<>();
+                                list.add(secondCellLeftDown);
+                                possibleMoves.put(whiteChecker, list);
+                            }
+                        }
+                    }
+                }
+
+                if (firstCellRightDown != null) {
+                    Checker checker = board.getCellChecker(firstCellRightDown);
+                    if (checker != null && checker.getColor().equals("b")) {
+                        secondCellRightDown = Utils.convertNumbersToCell(whiteChecker.getX() + 2, whiteChecker.getY() - 2);
+                        if (secondCellRightDown != null) {
+                            Checker checker2 = board.getCellChecker(secondCellRightDown);
+                            if (checker2 == null) {
+                                List<String> list = possibleMoves.get(whiteChecker);
+                                if (possibleMoves.get(whiteChecker) == null) {
+                                    list = new ArrayList<>();
+                                }
+                                list.add(secondCellRightDown);
+                                possibleMoves.put(whiteChecker, list);
+                            }
                         }
                     }
                 }
@@ -183,6 +230,16 @@ public class Game {
             List<Integer> movement = Utils.getNumbersFromCell(move);
             if ((initialPosition.get(0) + 1 == movement.get(0) && initialPosition.get(1) + 1 == movement.get(1))
                     || initialPosition.get(0) - 1 == movement.get(0) && initialPosition.get(1) + 1 == movement.get(1)) {
+                Checker moveCh = board.getCellChecker(checker);
+                moveCh.setX(movement.get(0) + 1);
+                moveCh.setY(movement.get(1) + 1);
+
+                return true;
+            }
+
+            if (board.getCellChecker(checker).isKing()
+                    && ((initialPosition.get(0) + 1 == movement.get(0) && initialPosition.get(1) - 1 == movement.get(1))
+                    || (initialPosition.get(0) - 1 == movement.get(0) && initialPosition.get(1) - 1 == movement.get(1)))) {
                 Checker moveCh = board.getCellChecker(checker);
                 moveCh.setX(movement.get(0) + 1);
                 moveCh.setY(movement.get(1) + 1);
