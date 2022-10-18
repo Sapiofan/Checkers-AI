@@ -469,7 +469,7 @@ public class Computer {
         if (board.getWhiteCheckers().size() == 0) {
             return "Computer won";
         } else if (board.getBlackCheckers().size() == 0) {
-            return "You win. Congratulations";
+            return "You won. Congratulations";
         }
 
         if (board.getCurrentPlayer().equals("w")) {

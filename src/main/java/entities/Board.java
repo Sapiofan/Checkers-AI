@@ -119,18 +119,10 @@ public class Board {
         }
 
         for (Checker whiteChecker : whiteCheckers) {
-            if (whiteChecker.getY() % 2 == 0) {
-                if (!whiteChecker.isKing()) {
-                    boardState[8 - whiteChecker.getY()][whiteChecker.getX() - 1] = "\u26C2";
-                } else {
-                    boardState[8 - whiteChecker.getY()][8 - whiteChecker.getX() + 1] = "\u26C3";
-                }
+            if (!whiteChecker.isKing()) {
+                boardState[8 - whiteChecker.getY()][whiteChecker.getX() - 1] = "\u26C2";
             } else {
-                if (!whiteChecker.isKing()) {
-                    boardState[8 - whiteChecker.getY()][whiteChecker.getX() - 1] = "\u26C2";
-                } else {
-                    boardState[8 - whiteChecker.getY()][8 - whiteChecker.getX() - 1] = "\u26C3";
-                }
+                boardState[8 - whiteChecker.getY()][whiteChecker.getX() - 1] = "\u26C3";
             }
         }
 

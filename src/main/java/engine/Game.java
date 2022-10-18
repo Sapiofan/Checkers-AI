@@ -127,6 +127,24 @@ public class Game {
                         checker1.setY(checker1.getY() + 2);
 
                         return true;
+                    } else if (board.getCellChecker(checker).isKing() &&
+                            currentCheckerLetter - 2 == beatenCheckerLetter && currentCheckerNumber - 2 == beatenCheckerNumber) {
+                        Checker checker1 = board.getCellChecker(checker);
+                        board.getBlackCheckers().remove(board
+                                .getCellCheckerByNumbers(checker1.getX() - 1, checker1.getY() - 1));
+                        checker1.setX(checker1.getX() - 2);
+                        checker1.setY(checker1.getY() - 2);
+
+                        return true;
+                    } else if (board.getCellChecker(checker).isKing() &&
+                            currentCheckerLetter + 2 == beatenCheckerLetter && currentCheckerNumber - 2 == beatenCheckerNumber) {
+                        Checker checker1 = board.getCellChecker(checker);
+                        board.getBlackCheckers().remove(board
+                                .getCellCheckerByNumbers(checker1.getX() + 1, checker1.getY() - 1));
+                        checker1.setX(checker1.getX() + 2);
+                        checker1.setY(checker1.getY() - 2);
+
+                        return true;
                     }
                 }
             }
