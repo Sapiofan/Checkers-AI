@@ -99,26 +99,30 @@ public class Game {
                     break;
                 }
             }
-            System.out.println("You can't move there. You must beat a checker.");
+            if(!flag) {
+                System.out.println("You can't move there. You must beat a checker.");
+            }
         }
 
-        if (flag) {
+        if (flag) { // add additional beats for user, assign King status to checker if it reached last line
             char currentCheckerLetter = checker.charAt(0);
             char currentCheckerNumber = checker.charAt(1);
             for (Map.Entry<Checker, List<String>> checkerListEntry : checkersThatMustBeBeaten.entrySet()) {
                 for (String s : checkerListEntry.getValue()) {
                     char beatenCheckerLetter = s.charAt(0);
                     char beatenCheckerNumber = s.charAt(1);
-                    if (currentCheckerLetter - 1 == beatenCheckerLetter && currentCheckerNumber + 1 == beatenCheckerNumber) {
+                    if (currentCheckerLetter - 2 == beatenCheckerLetter && currentCheckerNumber + 2 == beatenCheckerNumber) {
                         Checker checker1 = board.getCellChecker(checker);
-                        board.getBlackCheckers().remove(board.getCellChecker(checker));
+                        board.getBlackCheckers().remove(board
+                                .getCellCheckerByNumbers(checker1.getX() - 1, checker1.getY() + 1));
                         checker1.setX(checker1.getX() - 2);
                         checker1.setY(checker1.getY() + 2);
 
                         return true;
-                    } else if (currentCheckerLetter + 1 == beatenCheckerLetter && currentCheckerNumber + 1 == beatenCheckerNumber) {
+                    } else if (currentCheckerLetter + 2 == beatenCheckerLetter && currentCheckerNumber + 2 == beatenCheckerNumber) {
                         Checker checker1 = board.getCellChecker(checker);
-                        board.getBlackCheckers().remove(board.getCellChecker(checker));
+                        board.getBlackCheckers().remove(board
+                                .getCellCheckerByNumbers(checker1.getX() + 1, checker1.getY() + 1));
                         checker1.setX(checker1.getX() + 2);
                         checker1.setY(checker1.getY() + 2);
 
@@ -224,6 +228,10 @@ public class Game {
     }
 
     public boolean userCanMoveChecker(Board board, String checker, String move) {
+        if(checker.equals(move)) {
+            return false;
+        }
+
         Checker cellChecker = board.getCellChecker(move);
         if (cellChecker == null) {
             List<Integer> initialPosition = Utils.getNumbersFromCell(checker);

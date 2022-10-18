@@ -16,16 +16,19 @@ public class Checker {
         this.color = color;
     }
 
-    public Checker(UUID id, int x, int y, String color) {
+    public Checker(UUID id, int x, int y, String color, boolean isKing) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.color = color;
+        this.isKing = isKing;
     }
 
-    public Checker(String x, int y) {
+    public Checker(String x, int y, String color) {
+        this.id = UUID.randomUUID();
         setStringX(x);
         this.y = y;
+        this.color = color;
     }
 
     public UUID getId() {
@@ -78,7 +81,7 @@ public class Checker {
     }
 
     public void setKing(boolean king) {
-        isKing = king;
+        this.isKing = king;
     }
 
     public String getCheckerCell() {

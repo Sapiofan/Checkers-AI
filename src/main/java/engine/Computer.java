@@ -142,7 +142,7 @@ public class Computer {
         }
     }
 
-    private void killBeatenBlackChecker(String cell, Checker whiteChecker, Board init) {
+    public void killBeatenBlackChecker(String cell, Checker whiteChecker, Board init) {
         if (cell.charAt(0) - whiteChecker.getCheckerCell().charAt(0) == -2) {
             String beatenCheckerCell = String.valueOf(whiteChecker.getCheckerCell().charAt(0) - 1) +
                     String.valueOf(whiteChecker.getCheckerCell().charAt(1) + 1);
@@ -438,11 +438,13 @@ public class Computer {
         Board tempBoard = new Board();
         List<Checker> tempBlack = board.getBlackCheckers()
                 .stream()
-                .map(blackChecker -> new Checker(blackChecker.getId(), blackChecker.getX(), blackChecker.getY(), "b"))
+                .map(blackChecker -> new Checker(blackChecker.getId(), blackChecker.getX(),
+                        blackChecker.getY(), "b", blackChecker.isKing()))
                 .collect(Collectors.toList());
         List<Checker> tempWhite = board.getWhiteCheckers()
                 .stream()
-                .map(whiteChecker -> new Checker(whiteChecker.getId(), whiteChecker.getX(), whiteChecker.getY(), "w"))
+                .map(whiteChecker -> new Checker(whiteChecker.getId(), whiteChecker.getX(),
+                        whiteChecker.getY(), "w", whiteChecker.isKing()))
                 .collect(Collectors.toList());
         tempBoard.setWhiteCheckers(tempWhite);
         tempBoard.setBlackCheckers(tempBlack);
