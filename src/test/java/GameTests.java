@@ -96,25 +96,11 @@ public class GameTests {
         Assertions.assertEquals(readFile("3/1/result.txt"), board.toString());
 
         board = getTempBoard(temp);
-        blackCheckers.add(new Checker(5, 7, "b"));
-        board.setBlackCheckers(blackCheckers);
-        game.checkIfCheckerCanMove(board, "f4", "d6");
+        board.getBlackCheckers().add(new Checker(7, 5, "b"));
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
-        PrintStream old = System.out;
-        System.setOut(ps);
-        System.out.flush();
-        System.setOut(old);
-        Assertions.assertEquals("Your next move: ", baos.toString());
-
-        InputStream sysInBackup = System.in;
-        ByteArrayInputStream in = new ByteArrayInputStream("f8".getBytes());
-        System.setIn(in);
-
-        Assertions.assertTrue(whiteCheckers.get(0).isKing());
+        System.out.println(board);
+        game.checkIfCheckerCanMove(board, "f4", "h6");
         Assertions.assertEquals(readFile("3/2/result.txt"), board.toString());
-
 
     }
 
@@ -141,29 +127,10 @@ public class GameTests {
         Assertions.assertTrue(game.checkIfCheckerCanMove(board, "f4", "d2"));
         board = getTempBoard(temp);
         Assertions.assertTrue(game.checkIfCheckerCanMove(board, "f4", "h2"));
-        board = getTempBoard(temp);
-
-        board.getBlackCheckers().add(new Checker(3, 3, "b"));
-        game.checkIfCheckerCanMove(board, "f4", "d2");
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
-        PrintStream old = System.out;
-        System.setOut(ps);
-        System.out.flush();
-        System.setOut(old);
-        Assertions.assertEquals("Your next move: ", baos.toString());
-
-        InputStream sysInBackup = System.in;
-        ByteArrayInputStream in = new ByteArrayInputStream("b4".getBytes());
-        System.setIn(in);
-
-        Assertions.assertEquals(readFile("4/result.txt"), board.toString());
     }
 
     @Test
     public void checkComputerMove() throws IOException {
-        System.out.println("\u26C1");
         Board board = new Board();
         Computer computer = new Computer();
         Board temp;
@@ -205,13 +172,62 @@ public class GameTests {
     }
 
     @Test
-    public void checkComputerBeat() {
+    public void checkComputerBeat() throws IOException {
+        Board board = new Board();
+        Computer computer = new Computer();
+        Board temp;
+        List<Checker> whiteCheckers = new ArrayList<>();
+        whiteCheckers.add(new Checker(7, 5, "w"));
+        whiteCheckers.add(new Checker(1, 3, "w"));
 
+        List<Checker> blackCheckers = new ArrayList<>();
+        blackCheckers.add(new Checker(6, 6, "b"));
+        blackCheckers.add(new Checker(2, 8, "b"));
+
+        board.setWhiteCheckers(whiteCheckers);
+        board.setBlackCheckers(blackCheckers);
+        board.setCurrentPlayer("b");
+        temp = getTempBoard(board);
+
+        computer.makeMove(3, board);
+        Assertions.assertEquals(readFile("6/1/result.txt"), board.toString());
+
+        board = getTempBoard(temp);
+        board.getWhiteCheckers().add(new Checker(5, 5, "w"));
+        board.getWhiteCheckers().add(new Checker(5, 3, "w"));
+
+        computer.makeMove(4, board);
+        Assertions.assertEquals(readFile("6/2/result.txt"), board.toString());
     }
 
     @Test
-    public void checkComputerBeatByKing() {
+    public void checkComputerBeatByKing() throws IOException {
+        Board board = new Board();
+        Computer computer = new Computer();
+        Board temp;
+        List<Checker> whiteCheckers = new ArrayList<>();
+        whiteCheckers.add(new Checker(6, 2, "w"));
+        whiteCheckers.add(new Checker(1, 3, "w"));
 
+        List<Checker> blackCheckers = new ArrayList<>();
+        Checker checker = new Checker(7, 1, "b");
+        checker.setKing(true);
+        blackCheckers.add(checker);
+        blackCheckers.add(new Checker(2, 8, "b"));
+
+        board.setWhiteCheckers(whiteCheckers);
+        board.setBlackCheckers(blackCheckers);
+        board.setCurrentPlayer("b");
+        temp = getTempBoard(board);
+
+        computer.makeMove(3, board);
+        Assertions.assertEquals(readFile("7/1/result.txt"), board.toString());
+
+        board = getTempBoard(temp);
+        board.getWhiteCheckers().add(new Checker(4, 2, "w"));
+
+        computer.makeMove(4, board);
+        Assertions.assertEquals(readFile("7/2/result.txt"), board.toString());
     }
 
     @Test

@@ -6,8 +6,10 @@ import entities.Checker;
 import java.util.*;
 
 public class Game {
+
+    private final Scanner scanner = new Scanner(System.in);
+
     public void start() {
-        Scanner scanner = new Scanner(System.in);
         Board board = new Board();
         Computer computer = new Computer();
         System.out.println("Choose a mode:\n" +
@@ -18,8 +20,7 @@ public class Game {
         int mode = scanner.nextInt() * 2;
         String checker, move, result;
 
-        // fix beating
-        // add tests
+        // fix beating, moving
         // cleaning, optimization
         while (true) {
             System.out.println(board);
@@ -54,7 +55,6 @@ public class Game {
     }
 
     public String checkMoveInput(String move, boolean exitMode) {
-        Scanner scanner = new Scanner(System.in);
         move = move.toLowerCase();
         String[] chars = move.split("");
         while (move.length() != 2 && (chars[0].charAt(0) < 'a' && chars[0].charAt(0) > 'h')
@@ -104,48 +104,52 @@ public class Game {
             }
         }
 
+        Checker checker1 = null;
         if (flag) { // add additional beats for user, assign King status to checker if it reached last line
-            char currentCheckerLetter = checker.charAt(0);
-            char currentCheckerNumber = checker.charAt(1);
-            for (Map.Entry<Checker, List<String>> checkerListEntry : checkersThatMustBeBeaten.entrySet()) {
-                for (String s : checkerListEntry.getValue()) {
-                    char beatenCheckerLetter = s.charAt(0);
-                    char beatenCheckerNumber = s.charAt(1);
-                    if (currentCheckerLetter - 2 == beatenCheckerLetter && currentCheckerNumber + 2 == beatenCheckerNumber) {
-                        Checker checker1 = board.getCellChecker(checker);
-                        board.getBlackCheckers().remove(board
-                                .getCellCheckerByNumbers(checker1.getX() - 1, checker1.getY() + 1));
-                        checker1.setX(checker1.getX() - 2);
-                        checker1.setY(checker1.getY() + 2);
+//            for (Map.Entry<Checker, List<String>> checkerListEntry : checkersThatMustBeBeaten.entrySet()) {
+//                for (String s : checkerListEntry.getValue()) {
 
-                        return true;
-                    } else if (currentCheckerLetter + 2 == beatenCheckerLetter && currentCheckerNumber + 2 == beatenCheckerNumber) {
-                        Checker checker1 = board.getCellChecker(checker);
-                        board.getBlackCheckers().remove(board
-                                .getCellCheckerByNumbers(checker1.getX() + 1, checker1.getY() + 1));
-                        checker1.setX(checker1.getX() + 2);
-                        checker1.setY(checker1.getY() + 2);
-
-                        return true;
-                    } else if (board.getCellChecker(checker).isKing() &&
-                            currentCheckerLetter - 2 == beatenCheckerLetter && currentCheckerNumber - 2 == beatenCheckerNumber) {
-                        Checker checker1 = board.getCellChecker(checker);
-                        board.getBlackCheckers().remove(board
-                                .getCellCheckerByNumbers(checker1.getX() - 1, checker1.getY() - 1));
-                        checker1.setX(checker1.getX() - 2);
-                        checker1.setY(checker1.getY() - 2);
-
-                        return true;
-                    } else if (board.getCellChecker(checker).isKing() &&
-                            currentCheckerLetter + 2 == beatenCheckerLetter && currentCheckerNumber - 2 == beatenCheckerNumber) {
-                        Checker checker1 = board.getCellChecker(checker);
-                        board.getBlackCheckers().remove(board
-                                .getCellCheckerByNumbers(checker1.getX() + 1, checker1.getY() - 1));
-                        checker1.setX(checker1.getX() + 2);
-                        checker1.setY(checker1.getY() - 2);
-
-                        return true;
+                   checker1 = beatComputerChecker(move, checker, board);
+                    if(checker1 != null && checker1.getY() == 8) {
+                        checker1.setKing(true);
+//                        break;
                     }
+//                }
+//                if(checker1 != null) {
+//                    break;
+//                }
+//            }
+            while (checker1 != null) {
+                Checker checker2 = checker1;
+                checkersThatMustBeBeaten = checkIfPlayerMustBeat(board);
+                for (Map.Entry<Checker, List<String>> checkerListEntry : checkersThatMustBeBeaten.entrySet()) {
+                    if(checkerListEntry.getKey().getId().equals(checker1.getId())) {
+                        System.out.print("Your next move: ");
+                        move = checkMoveInput(scanner.next(), false);
+                        boolean flag2 = false;
+                        while (!flag2) {
+                            for (String s : checkerListEntry.getValue()) {
+                                if(s.equals(move)) {
+                                    flag2 = true;
+                                    break;
+                                }
+                            }
+                            if(!flag2) {
+                                String warn = "You must beat. Possible moves: ";
+                                for (String s : checkerListEntry.getValue()) {
+                                    warn += s + " ";
+                                }
+                                warn += "\nPlease, input your move from the list about: ";
+                                System.out.print(warn);
+                                move = checkMoveInput(scanner.next(), false);
+                            }
+                        }
+                        checker1 = beatComputerChecker(move, checker1.getCheckerCell(), board);
+                        break;
+                    }
+                }
+                if(checker1.equals(checker2)) {
+                    return true;
                 }
             }
         }
@@ -155,6 +159,51 @@ public class Game {
         }
 
         return userCanMoveChecker(board, checker, move);
+    }
+
+    public Checker beatComputerChecker(String s, String checker, Board board) {
+        Checker checker1 = null;
+        char beatenCheckerLetter = s.charAt(0);
+        char beatenCheckerNumber = s.charAt(1);
+        char currentCheckerLetter = checker.charAt(0);
+        char currentCheckerNumber = checker.charAt(1);
+        if (currentCheckerLetter - 2 == beatenCheckerLetter && currentCheckerNumber + 2 == beatenCheckerNumber) {
+            checker1 = board.getCellChecker(checker);
+            board.getBlackCheckers().remove(board
+                    .getCellCheckerByNumbers(checker1.getX() - 1, checker1.getY() + 1));
+            checker1.setX(checker1.getX() - 2);
+            checker1.setY(checker1.getY() + 2);
+
+            return checker1;
+        } else if (currentCheckerLetter + 2 == beatenCheckerLetter && currentCheckerNumber + 2 == beatenCheckerNumber) {
+            checker1 = board.getCellChecker(checker);
+            board.getBlackCheckers().remove(board
+                    .getCellCheckerByNumbers(checker1.getX() + 1, checker1.getY() + 1));
+            checker1.setX(checker1.getX() + 2);
+            checker1.setY(checker1.getY() + 2);
+
+            return checker1;
+        } else if (board.getCellChecker(checker).isKing() &&
+                currentCheckerLetter - 2 == beatenCheckerLetter && currentCheckerNumber - 2 == beatenCheckerNumber) {
+            checker1 = board.getCellChecker(checker);
+            board.getBlackCheckers().remove(board
+                    .getCellCheckerByNumbers(checker1.getX() - 1, checker1.getY() - 1));
+            checker1.setX(checker1.getX() - 2);
+            checker1.setY(checker1.getY() - 2);
+
+            return checker1;
+        } else if (board.getCellChecker(checker).isKing() &&
+                currentCheckerLetter + 2 == beatenCheckerLetter && currentCheckerNumber - 2 == beatenCheckerNumber) {
+            checker1 = board.getCellChecker(checker);
+            board.getBlackCheckers().remove(board
+                    .getCellCheckerByNumbers(checker1.getX() + 1, checker1.getY() - 1));
+            checker1.setX(checker1.getX() + 2);
+            checker1.setY(checker1.getY() - 2);
+
+            return checker1;
+        }
+
+        return null;
     }
 
     public static Map<Checker, List<String>> checkIfPlayerMustBeat(Board board) {
