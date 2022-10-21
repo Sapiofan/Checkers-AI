@@ -56,12 +56,12 @@ public class Checker {
     }
 
     public void setY(int y) {
-        if(color.equals("w")) {
-            if(y == 8) {
+        if (color.equals("w")) {
+            if (y == 8) {
                 this.isKing = true;
             }
         } else {
-            if(y == 1) {
+            if (y == 1) {
                 this.isKing = true;
             }
         }
