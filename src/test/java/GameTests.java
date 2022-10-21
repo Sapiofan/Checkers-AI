@@ -98,9 +98,12 @@ public class GameTests {
         board = getTempBoard(temp);
         board.getBlackCheckers().add(new Checker(7, 5, "b"));
 
-        System.out.println(board);
         game.checkIfCheckerCanMove(board, "f4", "h6");
         Assertions.assertEquals(readFile("3/2/result.txt"), board.toString());
+
+        board = getTempBoard(temp);
+        Assertions.assertFalse(game.checkIfCheckerCanMove(board, "f4", "g5"));
+        Assertions.assertEquals(readFile("3/1/init.txt"), board.toString());
 
     }
 
@@ -151,8 +154,8 @@ public class GameTests {
 
         board = getTempBoard(temp);
         board.setCurrentPlayer("b");
-        board.getWhiteCheckers().get(0).setCheckerCell("h2");
-        board.getWhiteCheckers().add(new Checker(2, 8, "b"));
+        board.getBlackCheckers().get(0).setCheckerCell("h2");
+        board.getBlackCheckers().add(new Checker(2, 8, "b"));
         computer.makeMove(2, board);
         Assertions.assertEquals(readFile("5/2/result.txt"), board.toString());
 
@@ -160,13 +163,16 @@ public class GameTests {
         board.setCurrentPlayer("b");
         blackCheckers = new ArrayList<>();
         blackCheckers.add(new Checker(4, 6, "b"));
+        whiteCheckers = new ArrayList<>();
+        checker = new Checker(1, 3, "w");
+        whiteCheckers.add(checker);
         board.setBlackCheckers(blackCheckers);
-        board.setWhiteCheckers(new ArrayList<>());
+        board.setWhiteCheckers(whiteCheckers);
+
         temp = getTempBoard(board);
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 3; i <= 8; i++) {
             computer.makeMove(i, board);
-            Assertions.assertTrue(board.getBlackCheckers().get(0).getCheckerCell().equals("c5")
-                    || board.getBlackCheckers().get(0).getCheckerCell().equals("e5"));
+            Assertions.assertTrue(board.getBlackCheckers().get(0).getCheckerCell().equals("c5"));
             board = getTempBoard(temp);
         }
     }
@@ -196,7 +202,7 @@ public class GameTests {
         board.getWhiteCheckers().add(new Checker(5, 5, "w"));
         board.getWhiteCheckers().add(new Checker(5, 3, "w"));
 
-        computer.makeMove(4, board);
+        computer.makeMove(2, board);
         Assertions.assertEquals(readFile("6/2/result.txt"), board.toString());
     }
 
@@ -275,6 +281,7 @@ public class GameTests {
 
         board.setWhiteCheckers(whiteCheckers2);
         board.setBlackCheckers(blackCheckers2);// user has no moves
+        board.setCurrentPlayer("w");
         Assertions.assertEquals("Computer won", computer.checkIfWinnerExists(board));
     }
 

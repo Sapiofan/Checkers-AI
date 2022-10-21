@@ -50,8 +50,8 @@ public class Computer {
         int counter = allPaths.size();
 
         for (int i = 1; i < mode; i++) { // default step = 1
-            int stopFlag = allPaths.get(allPaths.size() - 1).size();
-            for (int j = 0; j < allPaths.size(); j++) {
+            counter = allPaths.size();
+            for (int j = 0; j < counter; j++) {
                 tempBoard = getTempBoard(board); // update initial state
                 if (i % 2 == 0) {
                     tempBoard.setCurrentPlayer("b");
@@ -87,6 +87,10 @@ public class Computer {
                     }
                 }
                 possibleMoves = getCheckersThatCanMove(allCheckers, board1); // get moves of checkers
+                if(possibleMoves.isEmpty()) {
+                    allPaths.add(new ArrayList<>(allPath));
+                    continue;
+                }
                 for (Map.Entry<Checker, List<String>> checkerListEntry : possibleMoves.entrySet()) {
                     for (String s : checkerListEntry.getValue()) {
                         Map<String, Checker> map = new HashMap<>();
@@ -96,22 +100,26 @@ public class Computer {
                         allPaths.add(path);
                     }
                 }
-                if (stopFlag < allPath.size()) {
-                    break;
-                }
             }
             for (int i1 = 0; i1 < counter; i1++) {
-                allPaths.remove(i1);
+                allPaths.remove(0);
             }
-            counter = allPaths.size();
-//            int lastSize = allPaths.get(allPaths.size() - 1).size();
-//            allPaths.removeIf(allPath -> allPath.size() < lastSize);
         }
 
         strategy = bestStrategy(allPaths, board);
-        moveByStrategy(board);
-//        strategy.forEach(stringCheckerMap -> stringCheckerMap.forEach((key, value) -> value.setCheckerCell(key)));
-        strategy.remove(0);
+        Checker lastMoved;
+        while (true) {
+            moveByStrategy(board);
+            if (strategy.size() < 2) {
+                break;
+            }
+            lastMoved = strategy.get(0).entrySet().stream().findFirst().get().getValue();
+            strategy.remove(0);
+            if (!strategy.get(0).entrySet().stream().findFirst().get().getValue().getId()
+                    .equals(lastMoved.getId())) {
+                break;
+            }
+        }
 
         System.out.println(counter);
 
@@ -124,32 +132,62 @@ public class Computer {
                     if (stringCheckerEntry.getValue().getCheckerCell().equals(blackChecker.getCheckerCell())) {
                         killBeatenWhiteChecker(stringCheckerEntry.getKey(), blackChecker, init);
                         blackChecker.setCheckerCell(stringCheckerEntry.getKey());
+                        if (stringCheckerEntry.getKey().charAt(1) == '1') {
+                            blackChecker.setKing(true);
+                        }
+                        break;
                     }
                 }
+                break;
             }
+            break;
         }
     }
 
     private void killBeatenWhiteChecker(String cell, Checker blackChecker, Board init) {
-        if (cell.charAt(0) - blackChecker.getCheckerCell().charAt(0) == 2) {
-            String beatenCheckerCell = String.valueOf(blackChecker.getCheckerCell().charAt(0) - 1) +
-                    String.valueOf(blackChecker.getCheckerCell().charAt(1) - 1);
+        if (blackChecker.isKing() && (cell.charAt(0) - blackChecker.getCheckerCell().charAt(0) == -2)
+                && (cell.charAt(1) - blackChecker.getCheckerCell().charAt(1) == 2)) {
+            String beatenCheckerCell = Character.toString(blackChecker.getCheckerCell().charAt(0) - 1) +
+                    Character.toString(blackChecker.getCheckerCell().charAt(1) + 1);
             init.getWhiteCheckers().remove(init.getCellChecker(beatenCheckerCell));
-        } else if (cell.charAt(0) - blackChecker.getCheckerCell().charAt(0) == -2) {
-            String beatenCheckerCell = String.valueOf(blackChecker.getCheckerCell().charAt(0) + 1) +
-                    String.valueOf(blackChecker.getCheckerCell().charAt(1) - 1);
+        } else if (blackChecker.isKing() && (cell.charAt(0) - blackChecker.getCheckerCell().charAt(0) == 2)
+                && (cell.charAt(1) - blackChecker.getCheckerCell().charAt(1) == 2)) {
+            String beatenCheckerCell = Character.toString(blackChecker.getCheckerCell().charAt(0) + 1) +
+                    Character.toString(blackChecker.getCheckerCell().charAt(1) + 1);
+            init.getWhiteCheckers().remove(init.getCellChecker(beatenCheckerCell));
+        } else if (cell.charAt(0) - blackChecker.getCheckerCell().charAt(0) == -2
+                && cell.charAt(1) - blackChecker.getCheckerCell().charAt(1) == -2) {
+            String beatenCheckerCell = Character.toString(blackChecker.getCheckerCell().charAt(0) - 1) +
+                    Character.toString(blackChecker.getCheckerCell().charAt(1) - 1);
+            init.getWhiteCheckers().remove(init.getCellChecker(beatenCheckerCell));
+        } else if (cell.charAt(0) - blackChecker.getCheckerCell().charAt(0) == 2
+                && cell.charAt(1) - blackChecker.getCheckerCell().charAt(1) == -2) {
+            String beatenCheckerCell = Character.toString(blackChecker.getCheckerCell().charAt(0) + 1) +
+                    Character.toString(blackChecker.getCheckerCell().charAt(1) - 1);
             init.getWhiteCheckers().remove(init.getCellChecker(beatenCheckerCell));
         }
     }
 
     public void killBeatenBlackChecker(String cell, Checker whiteChecker, Board init) {
-        if (cell.charAt(0) - whiteChecker.getCheckerCell().charAt(0) == -2) {
-            String beatenCheckerCell = String.valueOf(whiteChecker.getCheckerCell().charAt(0) - 1) +
-                    String.valueOf(whiteChecker.getCheckerCell().charAt(1) + 1);
+        if (whiteChecker.isKing() && (cell.charAt(0) - whiteChecker.getCheckerCell().charAt(0) == -2)
+                && (cell.charAt(1) - whiteChecker.getCheckerCell().charAt(1) == -2)) {
+            String beatenCheckerCell = Character.toString(whiteChecker.getCheckerCell().charAt(0) - 1) +
+                    Character.toString(whiteChecker.getCheckerCell().charAt(1) - 1);
+            init.getWhiteCheckers().remove(init.getCellChecker(beatenCheckerCell));
+        } else if (whiteChecker.isKing() && (cell.charAt(0) - whiteChecker.getCheckerCell().charAt(0) == 2)
+                && (cell.charAt(1) - whiteChecker.getCheckerCell().charAt(1) == -2)) {
+            String beatenCheckerCell = Character.toString(whiteChecker.getCheckerCell().charAt(0) + 1) +
+                    Character.toString(whiteChecker.getCheckerCell().charAt(1) - 1);
+            init.getWhiteCheckers().remove(init.getCellChecker(beatenCheckerCell));
+        } else if (cell.charAt(0) - whiteChecker.getCheckerCell().charAt(0) == 2
+                && cell.charAt(1) - whiteChecker.getCheckerCell().charAt(1) == 2) {
+            String beatenCheckerCell = Character.toString(whiteChecker.getCheckerCell().charAt(0) + 1) +
+                    Character.toString(whiteChecker.getCheckerCell().charAt(1) + 1);
             init.getBlackCheckers().remove(init.getCellChecker(beatenCheckerCell));
-        } else if (cell.charAt(0) - whiteChecker.getCheckerCell().charAt(0) == 2) {
-            String beatenCheckerCell = String.valueOf(whiteChecker.getCheckerCell().charAt(0) + 1) +
-                    String.valueOf(whiteChecker.getCheckerCell().charAt(1) + 1);
+        } else if (cell.charAt(0) - whiteChecker.getCheckerCell().charAt(0) == -2
+                && cell.charAt(1) - whiteChecker.getCheckerCell().charAt(1) == 2) {
+            String beatenCheckerCell = Character.toString(whiteChecker.getCheckerCell().charAt(0) - 1) +
+                    Character.toString(whiteChecker.getCheckerCell().charAt(1) + 1);
             init.getBlackCheckers().remove(init.getCellChecker(beatenCheckerCell));
         }
     }
@@ -165,7 +203,8 @@ public class Computer {
         }
         boolean flag = false;
         for (Map.Entry<Checker, List<String>> checkerListEntry : mustBeat.entrySet()) {
-            if (path.get(path.size() - 1).entrySet().stream().findFirst().get().getValue().equals(checkerListEntry.getKey())) {
+            if (path.get(path.size() - 1).entrySet().stream().findFirst().get().getValue().getId()
+                    .equals(checkerListEntry.getKey().getId())) {
                 for (String s : checkerListEntry.getValue()) {
                     Map<String, Checker> move = new HashMap<>();
                     move.put(s, checkerListEntry.getKey());
@@ -277,18 +316,26 @@ public class Computer {
         boolean flag = false;
         for (Map<String, Checker> stringCheckerMap : path) {
             for (Map.Entry<String, Checker> stringCheckerEntry : stringCheckerMap.entrySet()) {
-                if(stringCheckerEntry.getValue().getColor().equals("b")) {
+                if (stringCheckerEntry.getValue().getColor().equals("b")) {
                     for (Checker blackChecker : init.getBlackCheckers()) {
                         if (blackChecker.getId().equals(stringCheckerEntry.getValue().getId())) {
+                            killBeatenWhiteChecker(stringCheckerEntry.getKey(), blackChecker, init);
                             blackChecker.setCheckerCell(stringCheckerEntry.getKey());
+                            if (stringCheckerEntry.getKey().charAt(1) == '1') {
+                                blackChecker.setKing(true);
+                            }
                             flag = true;
                             break;
                         }
                     }
                 } else {
                     for (Checker whiteChecker : init.getWhiteCheckers()) {
-                        if(whiteChecker.getId().equals(stringCheckerEntry.getValue().getId())) {
+                        if (whiteChecker.getId().equals(stringCheckerEntry.getValue().getId())) {
+                            killBeatenBlackChecker(stringCheckerEntry.getKey(), whiteChecker, init);
                             whiteChecker.setCheckerCell(stringCheckerEntry.getKey());
+                            if (stringCheckerEntry.getKey().charAt(1) == '8') {
+                                whiteChecker.setKing(true);
+                            }
                             flag = true;
                             break;
                         }
@@ -343,11 +390,11 @@ public class Computer {
                     && board.getCellCheckerByNumbers(x + 2, y) == null) {
                 possibleMoves.add(convertNumbersToCell(x + 1 + 1, y + 1 - 1));
             }
-            if(checker.isKing()
+            if (checker.isKing()
                     && ((x - 1 >= 0 && y + 1 < 8 && board.getCellCheckerByNumbers(x, y + 2) == null))) {
                 possibleMoves.add(convertNumbersToCell(x + 1 - 1, y + 1 + 1));
             }
-            if(checker.isKing()
+            if (checker.isKing()
                     && ((x + 1 < 8 && y + 1 < 8 && board.getCellCheckerByNumbers(x + 2, y + 2) == null))) {
                 possibleMoves.add(convertNumbersToCell(x + 1 + 1, y + 1 + 1));
             }
@@ -383,6 +430,9 @@ public class Computer {
         Set<Checker> potentialKings = getPotentialKings(allPaths, board, tempBoard);
         for (List<Map<String, Checker>> allPath : allPaths) {
             Board state = getBoardState(tempBoard, allPath);
+            if(checkIfWinnerExists(state).equals("Computer won")) {
+                return allPath;
+            }
             int potentialKingsExist = 0;
             for (Checker whiteChecker : state.getWhiteCheckers()) {
                 for (Checker potentialKing : potentialKings) {
@@ -448,6 +498,7 @@ public class Computer {
                 .collect(Collectors.toList());
         tempBoard.setWhiteCheckers(tempWhite);
         tempBoard.setBlackCheckers(tempBlack);
+        tempBoard.setCurrentPlayer(board.getCurrentPlayer());
 
         return tempBoard;
     }
@@ -455,7 +506,7 @@ public class Computer {
     private HashMap<List<Map<String, Checker>>, Integer> sortByValue(Map<List<Map<String, Checker>>, Integer> hm) {
         List<Map.Entry<List<Map<String, Checker>>, Integer>> list = new LinkedList<>(hm.entrySet());
 
-        list.sort(Map.Entry.comparingByValue());
+        list.sort(Collections.reverseOrder(Map.Entry.comparingByValue()));
 
         HashMap<List<Map<String, Checker>>, Integer> temp = new LinkedHashMap<>();
         for (Map.Entry<List<Map<String, Checker>>, Integer> aa : list) {

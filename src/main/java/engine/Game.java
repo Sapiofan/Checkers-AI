@@ -20,7 +20,6 @@ public class Game {
         int mode = scanner.nextInt() * 2;
         String checker, move, result;
 
-        // fix beating, moving
         // cleaning, optimization
         while (true) {
             System.out.println(board);
@@ -99,42 +98,34 @@ public class Game {
                     break;
                 }
             }
-            if(!flag) {
-                System.out.println("You can't move there. You must beat a checker.");
+            if (!flag) {
+                System.out.println("You must beat a checker.");
+                return false;
             }
         }
 
         Checker checker1 = null;
-        if (flag) { // add additional beats for user, assign King status to checker if it reached last line
-//            for (Map.Entry<Checker, List<String>> checkerListEntry : checkersThatMustBeBeaten.entrySet()) {
-//                for (String s : checkerListEntry.getValue()) {
-
-                   checker1 = beatComputerChecker(move, checker, board);
-                    if(checker1 != null && checker1.getY() == 8) {
-                        checker1.setKing(true);
-//                        break;
-                    }
-//                }
-//                if(checker1 != null) {
-//                    break;
-//                }
-//            }
+        if (flag) {
+            checker1 = beatComputerChecker(move, checker, board);
+            if (checker1 != null && checker1.getY() == 8) {
+                checker1.setKing(true);
+            }
             while (checker1 != null) {
                 Checker checker2 = checker1;
                 checkersThatMustBeBeaten = checkIfPlayerMustBeat(board);
                 for (Map.Entry<Checker, List<String>> checkerListEntry : checkersThatMustBeBeaten.entrySet()) {
-                    if(checkerListEntry.getKey().getId().equals(checker1.getId())) {
+                    if (checkerListEntry.getKey().getId().equals(checker1.getId())) {
                         System.out.print("Your next move: ");
                         move = checkMoveInput(scanner.next(), false);
                         boolean flag2 = false;
                         while (!flag2) {
                             for (String s : checkerListEntry.getValue()) {
-                                if(s.equals(move)) {
+                                if (s.equals(move)) {
                                     flag2 = true;
                                     break;
                                 }
                             }
-                            if(!flag2) {
+                            if (!flag2) {
                                 String warn = "You must beat. Possible moves: ";
                                 for (String s : checkerListEntry.getValue()) {
                                     warn += s + " ";
@@ -148,7 +139,7 @@ public class Game {
                         break;
                     }
                 }
-                if(checker1.equals(checker2)) {
+                if (checker1.equals(checker2)) {
                     return true;
                 }
             }
@@ -295,7 +286,7 @@ public class Game {
     }
 
     public boolean userCanMoveChecker(Board board, String checker, String move) {
-        if(checker.equals(move)) {
+        if (checker.equals(move)) {
             return false;
         }
 
