@@ -15,8 +15,7 @@ public class Game {
         System.out.println("Choose a mode:\n" +
                 "1 >> easy\n" +
                 "2 >> medium\n" +
-                "3 >> hard\n" +
-                "4 >> insane\n");
+                "3 >> hard");
         int mode = scanner.nextInt() * 2;
         String checker, move, result;
 

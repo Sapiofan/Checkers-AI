@@ -421,7 +421,7 @@ public class Computer {
     }
 
     // 1. the biggest number of rival beaten checkers (beaten checker = +2)
-    // 2. not allow to get King (getting King = +4)
+    // 2. user gets King (getting King = -4)
     // 3. the smallest number of computer beaten checkers and not more than rival (beaten checker = -2)
     // 4. getting of King (getting king = +3)
     private List<Map<String, Checker>> bestStrategy(List<List<Map<String, Checker>>> allPaths, Board board) {
@@ -443,7 +443,7 @@ public class Computer {
             }
             gradeStrategies.put(allPath,
                     ((board.getWhiteCheckers().size() - state.getWhiteCheckers().size()) * 2) -
-                            ((board.getBlackCheckers().size() - state.getBlackCheckers().size()) * 2) +
+                            ((board.getBlackCheckers().size() - state.getBlackCheckers().size()) * 2) -
                             (getNumberOfComputerKings(allPath, board) * 3) +
                             (potentialKings.size() - potentialKingsExist) * 4);
         }
