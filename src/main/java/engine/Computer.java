@@ -95,7 +95,7 @@ public class Computer {
 
         strategy = bestStrategy(allPaths, board);
         Checker lastMoved;
-        while (true) {
+        while (board.getWhiteCheckers().size() != 0) {
             moveByStrategy(board);
             if (strategy.size() < 2) {
                 break;

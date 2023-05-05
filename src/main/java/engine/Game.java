@@ -19,7 +19,7 @@ public class Game {
                 "1 >> easy\n" +
                 "2 >> medium\n" +
                 "3 >> hard");
-        int mode = scanner.nextInt() * 2;
+        int mode = chooseMode() * 2;
         String checker, move, result;
 
         while (true) {
@@ -50,6 +50,22 @@ public class Game {
             if (!result.equals("")) {
                 System.out.println(result);
                 return;
+            }
+        }
+    }
+
+    private int chooseMode() {
+        int mode;
+        while (true) {
+            try {
+                mode = scanner.nextInt();
+                if(mode < 1 || mode > 3) {
+                    System.out.println("Wrong mode. Input number in the range 1-3 inclusively.");
+                    continue;
+                }
+                return mode;
+            } catch (NumberFormatException e) {
+                System.out.println("Wrong mode. Input number in the range 1-3 inclusively.");
             }
         }
     }

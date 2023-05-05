@@ -4,9 +4,8 @@ import entities.Board;
 import entities.Checker;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import utils.TestUtils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,7 @@ public class GameTests {
 
     @Test
     public void checkInitialBoard() throws IOException {
-        Assertions.assertEquals(readFile("1/init.txt"), new Board().toString());
+        Assertions.assertEquals(TestUtils.readFile("1/init.txt"), new Board().toString());
     }
 
     @Test
@@ -28,7 +27,7 @@ public class GameTests {
         Game game = new Game();
         game.makePlayerMove(board, "a3", "b4");
         Board temp = getTempBoard(board);
-        String state = readFile("2/1/result.txt");
+        String state = TestUtils.readFile("2/1/result.txt");
         Assertions.assertEquals(state, board.toString());
         Assertions.assertTrue(game.checkIfCheckerCanMove(board, "b4", "a5"));
         board = getTempBoard(temp);
@@ -95,17 +94,17 @@ public class GameTests {
         Assertions.assertTrue(mustBeat.size() != 0);
 
         game.checkIfCheckerCanMove(board, "f4", "d6");
-        Assertions.assertEquals(readFile("3/1/result.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("3/1/result.txt"), board.toString());
 
         board = getTempBoard(temp);
         board.getBlackCheckers().add(new Checker(7, 5, "b"));
 
         game.checkIfCheckerCanMove(board, "f4", "h6");
-        Assertions.assertEquals(readFile("3/2/result.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("3/2/result.txt"), board.toString());
 
         board = getTempBoard(temp);
         Assertions.assertFalse(game.checkIfCheckerCanMove(board, "f4", "g5"));
-        Assertions.assertEquals(readFile("3/1/init.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("3/1/init.txt"), board.toString());
 
     }
 
@@ -152,14 +151,14 @@ public class GameTests {
         temp = getTempBoard(board);
 
         computer.makeMove(4, board);
-        Assertions.assertEquals(readFile("5/1/result.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("5/1/result.txt"), board.toString());
 
         board = getTempBoard(temp);
         board.setCurrentPlayer("b");
         board.getBlackCheckers().get(0).setCheckerCell("h2");
         board.getBlackCheckers().add(new Checker(2, 8, "b"));
         computer.makeMove(2, board);
-        Assertions.assertEquals(readFile("5/2/result.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("5/2/result.txt"), board.toString());
 
         board = getTempBoard(temp);
         board.setCurrentPlayer("b");
@@ -198,14 +197,14 @@ public class GameTests {
         temp = getTempBoard(board);
 
         computer.makeMove(3, board);
-        Assertions.assertEquals(readFile("6/1/result.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("6/1/result.txt"), board.toString());
 
         board = getTempBoard(temp);
         board.getWhiteCheckers().add(new Checker(5, 5, "w"));
         board.getWhiteCheckers().add(new Checker(5, 3, "w"));
 
-        computer.makeMove(2, board);
-        Assertions.assertEquals(readFile("6/2/result.txt"), board.toString());
+        computer.makeMove(4, board);
+        Assertions.assertEquals(TestUtils.readFile("6/2/result.txt"), board.toString());
     }
 
     @Test
@@ -229,13 +228,13 @@ public class GameTests {
         temp = getTempBoard(board);
 
         computer.makeMove(3, board);
-        Assertions.assertEquals(readFile("7/1/result.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("7/1/result.txt"), board.toString());
 
         board = getTempBoard(temp);
         board.getWhiteCheckers().add(new Checker(4, 2, "w"));
 
         computer.makeMove(4, board);
-        Assertions.assertEquals(readFile("7/2/result.txt"), board.toString());
+        Assertions.assertEquals(TestUtils.readFile("7/2/result.txt"), board.toString());
     }
 
     @Test
@@ -285,19 +284,6 @@ public class GameTests {
         board.setBlackCheckers(blackCheckers2);// user has no moves
         board.setCurrentPlayer("w");
         Assertions.assertEquals("Computer won", computer.checkIfWinnerExists(board));
-    }
-
-    private String readFile(String fileName) throws IOException {
-        String initFile = "";
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("src/test/resources/states/" + fileName))) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                initFile += line + "\n";
-            }
-            initFile = initFile.substring(0, initFile.length() - 1);
-        }
-
-        return initFile;
     }
 
     private Board getTempBoard(Board board) {
